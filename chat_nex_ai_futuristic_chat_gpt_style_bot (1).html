@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ChatNex AI Ultra</title>
+
+  <style>
+    *{box-sizing:border-box;}
+
+    body{
+      margin:0;
+      font-family:Arial;
+      background:linear-gradient(135deg,#050816,#020617);
+      color:white;
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+
+    .app{
+      width:95%;
+      max-width:900px;
+      height:95vh;
+      background:rgba(17,24,39,0.95);
+      border-radius:18px;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+      box-shadow:0 0 40px rgba(56,189,248,0.2);
+    }
+
+    .header{
+      background:#0b1220;
+      padding:14px;
+      text-align:center;
+      font-size:24px;
+      font-weight:bold;
+      color:#38bdf8;
+    }
+
+    #chat{
+      flex:1;
+      padding:18px;
+      overflow-y:auto;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .msg{
+      padding:12px;
+      border-radius:14px;
+      max-width:80%;
+    }
+
+    .user{background:#2563eb;align-self:flex-end;}
+    .bot{background:#1f2937;align-self:flex-start;}
+
+    .inputArea{
+      display:flex;
+      gap:10px;
+      padding:10px;
+      background:#0b1220;
+    }
+
+    input{
+      flex:1;
+      padding:12px;
+      border:none;
+      border-radius:10px;
+      outline:none;
+    }
+
+    button{
+      padding:12px;
+      border:none;
+      border-radius:10px;
+      cursor:pointer;
+      background:#22c55e;
+      color:white;
+      font-weight:bold;
+    }
+
+    button:hover{background:#16a34a;}
+
+    .tools{
+      font-size:12px;
+      padding:10px;
+      background:#0b1220;
+      color:#94a3b8;
+      border-top:1px solid #1f2937;
+      line-height:1.4;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="header">⚡ ChatNex AI ULTRA</div>
+
+  <div id="chat"></div>
+
+  <div class="inputArea">
+    <input id="message" placeholder="Ask ChatNex AI..." />
+    <button onclick="startVoice()">🎤</button>
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <div class="tools">
+    💡 Voice enabled | Multi-question support | Memory active | ChatNex AI
+  </div>
+
+</div>
+
+<script>
+
+let memory = {
+  name: localStorage.getItem("name") || null
+};
+
+function speak(text){
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.lang = "en-US";
+  msg.rate = 1;
+  window.speechSynthesis.speak(msg);
+}
+
+function startVoice(){
+  const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  rec.lang = "en-US";
+  rec.start();
+
+  rec.onresult = function(e){
+    let text = e.results[0][0].transcript;
+
+    // IMPORTANT FIX: keep EVERYTHING in one sentence
+    text = text.replace(/[?.]/g," ").replace(/\s+/g," ").trim();
+
+    sendMessage(text);
+  };
+}
+
+function addMessage(text,type){
+  const chat=document.getElementById("chat");
+  const div=document.createElement("div");
+  div.className="msg "+type;
+  div.innerText=text;
+  chat.appendChild(div);
+  chat.scrollTop=chat.scrollHeight;
+}
+
+function getReply(msg){
+
+  msg = msg.toLowerCase().replace(/[?.]/g," ").replace(/\s+/g," ").trim();
+
+  if(msg.includes("my name is")){
+    let name = msg.split("my name is")[1].trim();
+    memory.name = name;
+    localStorage.setItem("name",name);
+    return "Nice to meet you " + name;
+  }
+
+  if(msg.includes("what is my name")){
+    return memory.name ? "Your name is " + memory.name : "I don't know your name yet.";
+  }
+
+  if(msg === "hi" || msg === "hello"){
+    return "Hey 👋 I am ChatNex AI Ultra.";
+  }
+
+  if(msg.includes("who are you")){
+    return "I am ChatNex AI Ultra a smart assistant.";
+  }
+
+  if(msg.includes("what can you do")){
+    return "I can answer questions and help you learn.";
+  }
+
+  if(msg.includes("who made you")){
+    return "Tomi Polyak made me.";
+  }
+
+  // NEW REQUIRED QUESTION
+  if(msg.includes("who is tomi polyak")){
+    return "He is a 17 years old boy Technologists.";
+  }
+
+  if(msg.includes("champions league")){
+    return "PSG and Arsenal are in the Champions League final 2026.";
+  }
+
+  if(msg.includes("duna aszfalt")){
+    return "Founded in 1996 and owner is Szijj László.";
+  }
+
+  if(msg.includes("weather")){
+    return "Check your weather app for updates.";
+  }
+
+  if(msg.includes("time")){
+    return "Check your device clock.";
+  }
+
+  // SMART DEFAULT
+  const replies=[
+    "Tell me more",
+    "Interesting",
+    "Go on",
+    "I understand",
+    "Explain more"
+  ];
+
+  return replies[Math.floor(Math.random()*replies.length)];
+}
+
+function sendMessage(textFromVoice=null){
+
+  const input=document.getElementById("message");
+  const text=textFromVoice || input.value;
+
+  if(!text)return;
+
+  addMessage(text,"user");
+  input.value="";
+
+  setTimeout(()=>{
+    const reply=getReply(text);
+    addMessage(reply,"bot");
+    speak(reply);
+  },400);
+}
+
+
+document.getElementById("message").addEventListener("keypress",function(e){
+  if(e.key==="Enter") sendMessage();
+});
+
+</script>
+
+</body>
+</html>
